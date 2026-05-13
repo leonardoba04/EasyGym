@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{portal/layout :: layout('Mensagens', ~{::main-content}, 'mensagens')}">
+<body><th:block th:fragment="main-content">
+
+<div style="margin-bottom:22px">
+  <h2 style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800">Mensagens</h2>
+  <p style="color:var(--muted);font-size:13px;margin-top:2px">
+    Entre em contato com os professores da sua unidade
+  </p>
+</div>
+
+<div th:if="${professores.empty}" class="empty-state">
+  <div class="icon">👨‍🏫</div>
+  <p>Nenhum professor disponível na sua unidade no momento.</p>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:10px;max-width:640px">
+  <a th:each="prof : ${professores}"
+     th:href="@{/aluno/mensagens/{id}(id=${prof.id})}"
+     class="prof-card">
+    <div class="checkin-avatar"
+         style="width:48px;height:48px;font-size:20px;flex-shrink:0;background:linear-gradient(135deg,var(--blue),var(--accent))"
+         th:text="${#strings.substring(prof.nome,0,1)}">P</div>
+    <div style="flex:1">
+      <div style="font-size:15px;font-weight:700" th:text="${prof.nome}">—</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:2px" th:text="${prof.modalidade}">—</div>
+      <div style="font-size:12px;color:var(--muted)" th:text="${prof.email}">—</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span class="badge badge-orange" th:text="${prof.modalidade}">—</span>
+      <span style="color:var(--muted);font-size:18px">→</span>
+    </div>
+  </a>
+</div>
+
+</th:block></body></html>

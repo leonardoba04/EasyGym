@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{portal/layout :: layout('Meu Perfil', ~{::main-content}, 'perfil')}">
+<body><th:block th:fragment="main-content">
+
+<div th:if="${sucesso}" class="alert alert-success">✅ <span th:text="${sucesso}"></span></div>
+<div th:if="${erro}" class="alert alert-error">❌ <span th:text="${erro}"></span></div>
+
+<div class="grid-2" style="margin-bottom:20px">
+
+  <!-- Dados pessoais -->
+  <div class="card">
+    <div class="card-title">Meus Dados</div>
+    <div style="display:grid;gap:0">
+      <div th:each="row : ${ {'Matrícula::' + aluno.matricula,
+                               'Nome::' + aluno.nome,
+                               'Email::' + aluno.email,
+                               'Telefone::' + aluno.telefone,
+                               'Idade::' + aluno.idade + ' anos',
+                               'Endereço::' + aluno.endereco,
+                               'Unidade::' + aluno.unidade,
+                               'Nível::' + aluno.nivelAtividade,
+                               'Saúde::' + aluno.problemasDeSaude} }"
+           style="display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px"
+              th:text="${#strings.substringBefore(row,'::')}">—</span>
+        <span style="font-size:13px;font-weight:500;text-align:right;max-width:60%"
+              th:text="${#strings.substringAfter(row,'::')}">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- IMC e Plano -->
+  <div style="display:flex;flex-direction:column;gap:16px">
+
+    <!-- IMC visual -->
+    <div class="card" style="text-align:center">
+      <div class="card-title">Índice de Massa Corporal</div>
+      <div class="imc-ring" style="margin:10px auto 16px">
+        <div class="imc-ring-value">
+          <div th:text="${#numbers.formatDecimal(aluno.calcularIMC(),1,'POINT',1,'COMMA')}">0</div>
+          <span class="imc-ring-label" th:text="${aluno.classificacaoIMC}">—</span>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:center;gap:28px">
+        <div style="text-align:center">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;color:var(--accent)"
+               th:text="${aluno.peso} + ' kg'">—</div>
+          <div style="font-size:11px;color:var(--muted)">Peso</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;color:var(--blue)"
+               th:text="${aluno.altura} + ' m'">—</div>
+          <div style="font-size:11px;color:var(--muted)">Altura</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Plano -->
+    <div th:if="${plano != null}" class="card">
+      <div class="card-title">Meu Plano</div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+        <div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800" th:text="${plano.nome}">—</div>
+          <span class="badge badge-yellow" th:text="${plano.nivel}">—</span>
+        </div>
+        <div style="text-align:right">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;color:var(--accent)"
+               th:text="'R$ ' + ${#numbers.formatDecimal(plano.valor,1,'POINT',2,'COMMA')}">—</div>
+          <div style="font-size:11px;color:var(--muted)">/mês</div>
+        </div>
+      </div>
+      <div th:each="b : ${plano.beneficios}" style="display:flex;align-items:center;gap:7px;margin-bottom:5px">
+        <span style="color:var(--green)">✓</span>
+        <span style="font-size:13px" th:text="${b}">—</span>
+      </div>
+    </div>
+
+    <!-- Status pagamento -->
+    <div th:if="${pagamentoAtivo.isPresent()}" class="payment-status-card ativo">
+      <div class="payment-icon">💳</div>
+      <div>
+        <div style="font-weight:700">Em dia</div>
+        <div style="font-size:12px;color:var(--muted)" th:text="'Até ' + ${pagamentoAtivo.get().validadeFormatada}">—</div>
+        <div style="font-size:12px;color:var(--muted)" th:text="${pagamentoAtivo.get().metodo.label}">—</div>
+      </div>
+    </div>
+    <div th:unless="${pagamentoAtivo.isPresent()}" class="payment-status-card vencido">
+      <div class="payment-icon">⚠️</div>
+      <div>
+        <div style="font-weight:700;color:var(--red)">Pagamento pendente</div>
+        <div style="font-size:12px;color:var(--muted)">Procure a recepção</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Alterar senha -->
+<div class="card" style="max-width:500px">
+  <div class="card-title">Alterar Senha</div>
+  <form th:action="@{/aluno/perfil/senha}" method="post">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+    <div class="form-group">
+      <label>Senha Atual</label>
+      <input type="password" name="senhaAtual" required placeholder="••••••••"/>
+    </div>
+    <div class="form-group">
+      <label>Nova Senha</label>
+      <input type="password" name="novaSenha" required placeholder="••••••••" minlength="6"/>
+    </div>
+    <button type="submit" class="btn btn-primary">🔒 Alterar Senha</button>
+  </form>
+</div>
+
+</th:block></body></html>

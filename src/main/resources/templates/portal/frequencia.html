@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{portal/layout :: layout('Minha Frequência', ~{::main-content}, 'frequencia')}">
+<body><th:block th:fragment="main-content">
+
+<div style="margin-bottom:22px">
+  <h2 style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800">Minha Frequência</h2>
+  <p style="color:var(--muted);font-size:13px;margin-top:2px">Acompanhe sua assiduidade e evolução</p>
+</div>
+
+<!-- Cards resumo -->
+<div class="stats-grid" style="margin-bottom:22px">
+  <div class="stat-card green">
+    <span class="stat-icon">📅</span>
+    <div class="stat-value" th:text="${totalMes}">0</div>
+    <div class="stat-label">Presenças este mês</div>
+  </div>
+  <div class="stat-card blue">
+    <span class="stat-icon">🏆</span>
+    <div class="stat-value" th:text="${totalGeral}">0</div>
+    <div class="stat-label">Total de Check-ins</div>
+  </div>
+  <div class="stat-card yellow">
+    <span class="stat-icon">🔥</span>
+    <div class="stat-value" th:text="${totalMes >= 12 ? 'Ótimo' : (totalMes >= 8 ? 'Bom' : (totalMes >= 4 ? 'Regular' : 'Início'))}">—</div>
+    <div class="stat-label">Desempenho mensal</div>
+  </div>
+</div>
+
+<div class="grid-2" style="margin-bottom:20px">
+
+  <!-- Frequência por mês -->
+  <div class="card">
+    <div class="card-title">Check-ins por Mês</div>
+    <div th:if="${porMes.empty}" class="empty-state" style="padding:30px">
+      <div class="icon">📊</div><p>Sem dados ainda</p>
+    </div>
+    <div th:each="entry : ${porMes}" style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px">
+        <span style="font-weight:600;text-transform:capitalize" th:text="${entry.key}">—</span>
+        <span style="color:var(--muted)" th:text="${entry.value} + ' visita(s)'">0</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill green"
+             th:style="'width:' + ${entry.value * 5} + '%'"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Meta mensal -->
+  <div class="card">
+    <div class="card-title">Meta do Mês</div>
+    <div style="text-align:center;padding:10px 0">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px">
+        Objetivo: 20 visitas/mês (5x por semana)
+      </div>
+
+      <!-- Círculo de progresso -->
+      <div style="position:relative;width:140px;height:140px;margin:0 auto 16px">
+        <svg viewBox="0 0 140 140" style="transform:rotate(-90deg);width:140px;height:140px">
+          <circle cx="70" cy="70" r="58" fill="none" stroke="var(--surface2)" stroke-width="12"/>
+          <circle cx="70" cy="70" r="58" fill="none" stroke="var(--green)" stroke-width="12"
+                  stroke-dasharray="364.4"
+                  th:stroke-dashoffset="${364.4 - (364.4 * [[${ [[${ totalMes > 20 ? 20 : totalMes }]] }]] / 20)}"
+                  stroke-linecap="round"/>
+        </svg>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;color:var(--green)"
+               th:text="${totalMes}">0</div>
+          <div style="font-size:11px;color:var(--muted)">de 20</div>
+        </div>
+      </div>
+
+      <div th:if="${totalMes >= 20}" class="badge badge-green" style="font-size:13px;padding:6px 16px">🎉 Meta atingida!</div>
+      <div th:unless="${totalMes >= 20}" style="font-size:13px;color:var(--muted)"
+           th:text="${20 - totalMes} + ' visitas para a meta'">—</div>
+    </div>
+  </div>
+</div>
+
+<!-- Histórico completo -->
+<div class="card">
+  <div class="card-title">Histórico de Presenças</div>
+  <div th:if="${checkIns.empty}" class="empty-state" style="padding:40px">
+    <div class="icon">📆</div>
+    <p>Nenhum check-in registrado ainda.<br>Compareça à academia e realize seu primeiro check-in!</p>
+  </div>
+  <div class="table-wrapper" th:unless="${checkIns.empty}">
+    <table>
+      <thead>
+        <tr><th>Data</th><th>Horário</th><th>Unidade</th></tr>
+      </thead>
+      <tbody>
+        <tr th:each="c : ${checkIns}">
+          <td style="font-weight:600" th:text="${c.dataFormatada}">—</td>
+          <td style="color:var(--accent);font-weight:600" th:text="${c.horarioFormatado}">—</td>
+          <td><span class="badge badge-blue" th:text="${c.unidade}">—</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</th:block></body></html>

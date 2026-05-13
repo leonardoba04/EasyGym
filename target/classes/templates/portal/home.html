@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{portal/layout :: layout('Início', ~{::main-content}, 'home')}">
+<body><th:block th:fragment="main-content">
+
+<!-- Saudação -->
+<div style="margin-bottom:24px">
+  <h2 style="font-family:'Barlow Condensed',sans-serif;font-size:30px;font-weight:800">
+    Olá, <span th:text="${#strings.substringBefore(aluno.nome,' ')}">Aluno</span>! 👋
+  </h2>
+  <p style="color:var(--muted);font-size:13px;margin-top:2px">
+    Bem-vindo ao seu portal. Acompanhe seu progresso e rotina de treinos.
+  </p>
+</div>
+
+<!-- Status pagamento -->
+<div th:if="${pagamentoAtivo.isPresent()}"
+     class="payment-status-card ativo" style="margin-bottom:22px">
+  <div class="payment-icon">✅</div>
+  <div style="flex:1">
+    <div style="font-weight:700;font-size:15px">Pagamento em dia</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:2px"
+         th:text="'Válido até ' + ${pagamentoAtivo.get().validadeFormatada}">—</div>
+  </div>
+  <div th:if="${plano != null}" style="text-align:right">
+    <div style="font-size:13px;font-weight:700" th:text="${plano.nome}">—</div>
+    <div style="font-size:12px;color:var(--muted)"
+         th:text="'R$ ' + ${#numbers.formatDecimal(plano.valor,1,'POINT',2,'COMMA')} + '/mês'">—</div>
+  </div>
+</div>
+
+<div th:unless="${pagamentoAtivo.isPresent()}"
+     class="payment-status-card vencido" style="margin-bottom:22px">
+  <div class="payment-icon">⚠️</div>
+  <div>
+    <div style="font-weight:700;font-size:15px;color:var(--red)">Pagamento vencido</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:2px">Procure a recepção para regularizar.</div>
+  </div>
+</div>
+
+<!-- Stats rápidos -->
+<div class="stats-grid" style="margin-bottom:22px">
+  <div class="stat-card green">
+    <span class="stat-icon">📅</span>
+    <div class="stat-value" th:text="${frequenciaMes}">0</div>
+    <div class="stat-label">Check-ins este mês</div>
+  </div>
+  <div class="stat-card yellow">
+    <span class="stat-icon">📋</span>
+    <div class="stat-value" style="font-size:20px" th:text="${plano != null ? plano.nome : '—'}">—</div>
+    <div class="stat-label">Plano atual</div>
+  </div>
+  <div class="stat-card blue">
+    <span class="stat-icon">⚖️</span>
+    <div class="stat-value" style="font-size:26px" th:text="${#numbers.formatDecimal(aluno.calcularIMC(),1,'POINT',1,'COMMA')}">0</div>
+    <div class="stat-label">IMC — <span th:text="${aluno.classificacaoIMC}">—</span></div>
+  </div>
+  <div class="stat-card orange">
+    <span class="stat-icon">💬</span>
+    <div class="stat-value" th:text="${naoLidasMensagens}">0</div>
+    <div class="stat-label">Mensagens não lidas</div>
+  </div>
+</div>
+
+<!-- Grid principal -->
+<div class="grid-2">
+
+  <!-- Modalidades disponíveis -->
+  <div class="card">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+      <span>Modalidades na sua Unidade</span>
+      <a th:href="@{/aluno/horarios}" class="btn btn-secondary btn-sm">Ver horários</a>
+    </div>
+    <div th:if="${modalidades.empty}" class="empty-state" style="padding:30px">
+      <div class="icon">🏋️</div><p>Nenhuma modalidade disponível</p>
+    </div>
+    <div th:each="m : ${modalidades}" class="horario-card" style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-weight:700;font-size:15px" th:text="${m.nome}">—</div>
+        <span style="font-size:12px;color:var(--muted)" th:text="${#lists.size(m.horarios)} + ' horário(s)'">—</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:8px">
+        <span th:each="h : ${m.horarios}" class="horario-pill">⏰ <span th:text="${h}">—</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Últimos check-ins -->
+  <div class="card">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+      <span>Últimas Presenças</span>
+      <a th:href="@{/aluno/frequencia}" class="btn btn-secondary btn-sm">Ver tudo</a>
+    </div>
+    <div th:if="${ultimosCheckIns.empty}" class="empty-state" style="padding:30px">
+      <div class="icon">📆</div><p>Nenhum check-in ainda</p>
+    </div>
+    <div th:each="c : ${ultimosCheckIns}" class="checkin-item">
+      <div class="checkin-avatar" style="background:var(--green);color:#0d0f14;font-size:16px">✓</div>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:600" th:text="${c.dataFormatada}">—</div>
+        <div style="font-size:12px;color:var(--muted)" th:text="${c.unidade}">—</div>
+      </div>
+      <div style="font-size:14px;font-weight:600;color:var(--accent)" th:text="${c.horarioFormatado}">—</div>
+    </div>
+  </div>
+</div>
+
+</th:block></body></html>

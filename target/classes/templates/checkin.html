@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout('Check-in', ~{::main-content}, 'checkin')}">
+<body><th:block th:fragment="main-content">
+
+<div th:if="${sucesso}" class="alert alert-success">✅ <span th:text="${sucesso}"></span></div>
+<div th:if="${erro}" class="alert alert-error">❌ <span th:text="${erro}"></span></div>
+
+<div style="margin-bottom:22px">
+  <h2 style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800">Check-in</h2>
+  <p style="color:var(--muted);font-size:13px;margin-top:2px">Registre a entrada dos alunos na academia</p>
+</div>
+
+<div class="grid-2">
+  <!-- Formulário -->
+  <div class="card">
+    <div class="card-title">Realizar Check-in</div>
+    <form th:action="@{/checkin/realizar}" method="post">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+      <div class="form-group">
+        <label>Selecione o Aluno</label>
+        <select name="idAluno" required style="font-size:15px;padding:11px 12px">
+          <option value="">Escolha o aluno...</option>
+          <option th:each="a : ${alunos}" th:value="${a.id}"
+                  th:text="'#' + ${a.id} + ' — ' + ${a.nome} + ' (' + ${a.unidade} + ')'">—</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;font-size:15px">
+        ✅ Confirmar Check-in
+      </button>
+    </form>
+
+    <div style="margin-top:18px;padding:14px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
+      <div style="font-size:11px;color:var(--muted);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">ℹ️ Regra</div>
+      <p style="font-size:13px;color:var(--muted);line-height:1.6">Apenas alunos com <strong style="color:var(--text)">pagamento ativo</strong> podem realizar check-in.</p>
+    </div>
+  </div>
+
+  <!-- Check-ins do dia -->
+  <div class="card">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+      <span>Check-ins de Hoje</span>
+      <span class="badge badge-yellow" th:text="${checkInsHoje.size()} + ' entradas'">0</span>
+    </div>
+    <div th:if="${checkInsHoje.empty}" class="empty-state" style="padding:40px">
+      <div class="icon">🚪</div><p>Nenhum check-in hoje ainda</p>
+    </div>
+    <div style="max-height:440px;overflow-y:auto">
+      <div th:each="c : ${checkInsHoje}" class="checkin-item">
+        <div class="checkin-avatar" th:text="${#strings.substring(c.nomeAluno,0,1)}">A</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:600" th:text="${c.nomeAluno}">—</div>
+          <div style="font-size:12px;color:var(--muted)" th:text="${c.unidade}">—</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:14px;font-weight:700;color:var(--accent)" th:text="${c.horarioFormatado}">—</div>
+          <div style="font-size:11px;color:var(--muted)">hoje</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</th:block></body></html>

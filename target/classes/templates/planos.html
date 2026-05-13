@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout('Planos', ~{::main-content}, 'planos')}">
+<body><th:block th:fragment="main-content">
+
+<div th:if="${sucesso}" class="alert alert-success">✅ <span th:text="${sucesso}"></span></div>
+<div th:if="${erro}" class="alert alert-error">❌ <span th:text="${erro}"></span></div>
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px">
+  <div>
+    <h2 style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800">Planos</h2>
+    <p style="color:var(--muted);font-size:13px;margin-top:2px">Configure os planos disponíveis para os alunos</p>
+  </div>
+  <button th:if="${isAdmin}" class="btn btn-primary" onclick="openModal('modal-plano')">+ Novo Plano</button>
+</div>
+
+<div class="grid-3">
+  <div th:each="p : ${planos}" class="card" style="position:relative;overflow:hidden;display:flex;flex-direction:column">
+    <!-- Faixa colorida no topo -->
+    <div style="position:absolute;top:0;left:0;right:0;height:4px"
+         th:style="'height:4px;background:' + (${p.nivel == 'Básico'} ? 'var(--blue)' : (${p.nivel == 'Intermediário'} ? 'var(--accent)' : 'linear-gradient(90deg,var(--accent),var(--accent2))'))"></div>
+
+    <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800" th:text="${p.nome}">—</div>
+        <span class="badge"
+              th:classappend="${p.nivel == 'Básico'} ? ' badge-blue' : (${p.nivel == 'Intermediário'} ? ' badge-yellow' : ' badge-orange')"
+              th:text="${p.nivel}">—</span>
+      </div>
+      <div style="text-align:right">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:30px;font-weight:800;color:var(--accent)"
+             th:text="'R$ ' + ${#numbers.formatDecimal(p.valor,1,'POINT',2,'COMMA')}">—</div>
+        <div style="font-size:11px;color:var(--muted)">/mês</div>
+      </div>
+    </div>
+
+    <p style="font-size:13px;color:var(--muted);margin:12px 0 8px" th:text="${p.descricao}">—</p>
+
+    <!-- Benefícios -->
+    <div th:if="${!p.beneficios.empty}" style="flex:1;margin-bottom:12px">
+      <div style="font-size:11px;color:var(--muted);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Inclui</div>
+      <div th:each="b : ${p.beneficios}" style="display:flex;align-items:center;gap:7px;margin-bottom:5px">
+        <span style="color:var(--green);font-size:13px">✓</span>
+        <span style="font-size:13px" th:text="${b}">—</span>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid var(--border);margin-top:auto">
+      <div>
+        <span style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700" th:text="${p.totalAlunos}">0</span>
+        <span style="font-size:12px;color:var(--muted)"> aluno(s)</span>
+      </div>
+      <form th:if="${isAdmin}" th:action="@{/planos/remover/{id}(id=${p.id})}" method="post"
+            onsubmit="return confirm('Remover plano? Alunos vinculados precisarão de um novo plano.')">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <button type="submit" class="btn btn-danger btn-sm">✕ Remover</button>
+      </form>
+    </div>
+  </div>
+
+  <div th:if="${planos.empty}" style="grid-column:1/-1" class="empty-state">
+    <div class="icon">📋</div>
+    <p>Nenhum plano cadastrado ainda.</p>
+    <button th:if="${isAdmin}" class="btn btn-primary" style="margin-top:16px" onclick="openModal('modal-plano')">Criar primeiro plano</button>
+  </div>
+</div>
+
+<!-- Modal Cadastrar Plano -->
+<div class="modal-backdrop" id="modal-plano">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Novo Plano</span>
+      <button class="modal-close" onclick="closeModal('modal-plano')">✕</button>
+    </div>
+    <form th:action="@{/planos/cadastrar}" method="post">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nome do Plano *</label>
+          <input type="text" name="nome" required placeholder="Plano Básico"/>
+        </div>
+        <div class="form-group">
+          <label>Nível *</label>
+          <select name="nivel" required>
+            <option value="Básico">Básico</option>
+            <option value="Intermediário">Intermediário</option>
+            <option value="Premium">Premium</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Valor Mensal (R$) *</label>
+        <input type="number" name="valor" step="0.01" required placeholder="99.90" min="0"/>
+      </div>
+      <div class="form-group">
+        <label>Descrição</label>
+        <input type="text" name="descricao" placeholder="Ideal para quem está começando"/>
+      </div>
+      <div class="form-group">
+        <label>Benefícios (um por linha)</label>
+        <textarea name="beneficios" placeholder="Musculação livre&#10;Área cardio&#10;Vestiário"></textarea>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-plano')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Cadastrar Plano</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+</th:block></body></html>
